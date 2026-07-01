@@ -65,6 +65,11 @@ header p{color:var(--text-dim);font-size:14px;margin-top:6px;}
     </div>
     <div class="count-badge"><strong id="pool-count">0</strong> hjältar valda</div>
     <input type="text" class="search-box" id="search" placeholder="Sök hjälte..." oninput="renderHeroes()">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button onclick="selectAll()" style="flex:1;padding:7px;background:rgba(200,155,60,.1);border:1px solid var(--gold-dim);color:var(--gold);font-family:Rajdhani,sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:4px;">Välj alla</button>
+      <button onclick="invertSelection()" style="flex:1;padding:7px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-family:Rajdhani,sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:4px;">Invertera</button>
+      <button onclick="clearAll()" style="flex:1;padding:7px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-family:Rajdhani,sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:4px;">Rensa alla</button>
+    </div>
     <div class="attr-tabs" id="attr-tabs"></div>
     <div class="hero-grid" id="hero-grid"></div>
   </div>
@@ -324,6 +329,40 @@ function renderHeroes() {
     card.onclick = () => toggleHero(h.id);
     grid.appendChild(card);
   });
+}
+
+function getVisibleHeroes() {
+  const search = document.getElementById('search').value.toLowerCase().trim();
+  return HERO_LIST.filter(h => {
+    if(currentAttr !== 'all' && h.attr !== currentAttr) return false;
+    if(search && !h.name.toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function selectAll() {
+  if(!currentPlayer.heroes) currentPlayer.heroes = [];
+  getVisibleHeroes().forEach(h => {
+    if(!currentPlayer.heroes.includes(h.id)) currentPlayer.heroes.push(h.id);
+  });
+  renderHeroes(); updateCount(); scheduleSave();
+}
+
+function invertSelection() {
+  if(!currentPlayer.heroes) currentPlayer.heroes = [];
+  getVisibleHeroes().forEach(h => {
+    const idx = currentPlayer.heroes.indexOf(h.id);
+    if(idx >= 0) currentPlayer.heroes.splice(idx, 1);
+    else currentPlayer.heroes.push(h.id);
+  });
+  renderHeroes(); updateCount(); scheduleSave();
+}
+
+function clearAll() {
+  if(!currentPlayer.heroes) currentPlayer.heroes = [];
+  const visibleIds = new Set(getVisibleHeroes().map(h => h.id));
+  currentPlayer.heroes = currentPlayer.heroes.filter(id => !visibleIds.has(id));
+  renderHeroes(); updateCount(); scheduleSave();
 }
 
 function toggleHero(id) {
